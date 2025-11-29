@@ -101,7 +101,7 @@ export const ChatContainer = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-transparent overflow-hidden">
+    <div className="flex flex-col h-dvh bg-transparent overflow-hidden">
       {error && (
         <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-3 sm:px-4 py-2 sm:py-3 mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-lg backdrop-blur-sm text-sm">
           <div className="flex items-center justify-between">
