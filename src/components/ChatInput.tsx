@@ -17,7 +17,7 @@ export const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
   };
 
   return (
-    <div className="pb-4 sm:pb-6 pt-2 flex-shrink-0">
+    <div className="pb-4 sm:pb-6 pt-2 flex-shrink-0 safe-area-bottom bg-[#131314]">
       <div className="max-w-3xl mx-auto px-3 sm:px-4">
         <form onSubmit={handleSubmit}>
           <div className="relative flex items-center">

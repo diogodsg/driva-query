@@ -21,7 +21,9 @@ export const MessageBubble = ({
 
   return (
     <div
-      className={`flex gap-2 sm:gap-3 mb-4 sm:mb-6 ${isUser ? "justify-end" : "justify-start"}`}
+      className={`flex gap-2 sm:gap-3 mb-4 sm:mb-6 ${
+        isUser ? "justify-end" : "justify-start"
+      }`}
     >
       {!isUser && (
         <div className="flex-shrink-0 mt-1">

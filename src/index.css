@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 /* Mobile-first base styles */
-html, body {
+html,
+body {
   height: 100%;
   overflow: hidden;
   -webkit-overflow-scrolling: touch;
@@ -18,10 +19,17 @@ html, body {
 
 #root {
   height: 100%;
-  padding-top: var(--safe-area-inset-top);
-  padding-bottom: var(--safe-area-inset-bottom);
   padding-left: var(--safe-area-inset-left);
   padding-right: var(--safe-area-inset-right);
+}
+
+/* Safe area utilities */
+.safe-area-bottom {
+  padding-bottom: calc(var(--safe-area-inset-bottom) + 0.5rem);
+}
+
+.safe-area-top {
+  padding-top: var(--safe-area-inset-top);
 }
 
 /* Prevent text selection on mobile */
@@ -86,7 +94,8 @@ html, body {
 
 /* Mobile input fixes */
 @media (max-width: 640px) {
-  input, textarea {
+  input,
+  textarea {
     font-size: 16px !important; /* Prevents iOS zoom on focus */
   }
 }
