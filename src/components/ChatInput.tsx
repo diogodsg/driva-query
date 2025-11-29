@@ -17,11 +17,11 @@ export const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
   };
 
   return (
-    <div className="pb-6 pt-2">
-      <div className="max-w-3xl mx-auto px-4">
+    <div className="pb-4 sm:pb-6 pt-2 flex-shrink-0">
+      <div className="max-w-3xl mx-auto px-3 sm:px-4">
         <form onSubmit={handleSubmit}>
           <div className="relative flex items-center">
-            <div className="absolute left-4 text-gray-500">
+            <div className="absolute left-3 sm:left-4 text-gray-500">
               <svg
                 width="20"
                 height="20"
@@ -39,9 +39,9 @@ export const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Peça ao Driva Query"
               disabled={isLoading}
-              className="w-full pl-12 pr-24 py-4 bg-[#1e1e1e] border border-[#333] rounded-full text-gray-100 placeholder-gray-500 focus:outline-none focus:border-[#555] transition-colors"
+              className="w-full pl-10 sm:pl-12 pr-14 sm:pr-24 py-3 sm:py-4 bg-[#1e1e1e] border border-[#333] rounded-full text-gray-100 placeholder-gray-500 focus:outline-none focus:border-[#555] focus:ring-1 focus:ring-[#555] transition-colors text-base"
             />
-            <div className="absolute right-4 flex items-center gap-2">
+            <div className="absolute right-2 sm:right-4 flex items-center gap-1 sm:gap-2">
               {isLoading ? (
                 <div className="p-2">
                   <svg
@@ -61,7 +61,7 @@ export const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
                 <button
                   type="submit"
                   disabled={!input.trim()}
-                  className="p-2 text-gray-400 hover:text-gray-200 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 sm:p-2 text-gray-400 hover:text-gray-200 active:scale-95 disabled:text-gray-600 disabled:cursor-not-allowed transition-all touch-manipulation"
                 >
                   <svg
                     width="20"
@@ -80,7 +80,7 @@ export const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
             </div>
           </div>
         </form>
-        <p className="text-center text-xs text-gray-600 mt-3">
+        <p className="text-center text-[10px] sm:text-xs text-gray-600 mt-2 sm:mt-3 px-2">
           O Driva Query pode cometer erros. Por isso, é bom checar as respostas.
         </p>
       </div>

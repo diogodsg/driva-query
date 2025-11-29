@@ -21,18 +21,19 @@ export const MessageBubble = ({
 
   return (
     <div
-      className={`flex gap-3 mb-6 ${isUser ? "justify-end" : "justify-start"}`}
+      className={`flex gap-2 sm:gap-3 mb-4 sm:mb-6 ${isUser ? "justify-end" : "justify-start"}`}
     >
       {!isUser && (
         <div className="flex-shrink-0 mt-1">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
             <svg
-              width="14"
-              height="14"
+              width="12"
+              height="12"
               viewBox="0 0 24 24"
               fill="none"
               stroke="white"
               strokeWidth="2"
+              className="sm:w-[14px] sm:h-[14px]"
             >
               <path d="M12 2L2 7l10 5 10-5-10-5z" />
               <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
@@ -41,13 +42,13 @@ export const MessageBubble = ({
         </div>
       )}
 
-      <div className={`max-w-[85%] ${isUser ? "order-1" : ""}`}>
+      <div className={`max-w-[90%] sm:max-w-[85%] ${isUser ? "order-1" : ""}`}>
         {isUser ? (
-          <div className="bg-[#2a2a2a] rounded-3xl px-5 py-3 text-gray-100">
+          <div className="bg-[#2a2a2a] rounded-2xl sm:rounded-3xl px-4 sm:px-5 py-2.5 sm:py-3 text-gray-100 text-sm sm:text-base">
             {message.content}
           </div>
         ) : (
-          <div className="markdown-content text-gray-200 leading-relaxed">
+          <div className="markdown-content text-gray-200 leading-relaxed text-sm sm:text-base">
             {showThinking ? (
               <ThinkingIndicator status={status} />
             ) : (
