@@ -21,67 +21,52 @@ export const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
       <div className="max-w-3xl mx-auto px-3 sm:px-4">
         <form onSubmit={handleSubmit}>
           <div className="relative flex items-center">
-            <div className="absolute left-3 sm:left-4 text-gray-500">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-              </svg>
-            </div>
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Peça ao Driva Query"
+              placeholder="Insira um comando para o Mind"
               disabled={isLoading}
-              className="w-full pl-10 sm:pl-12 pr-14 sm:pr-24 py-3 sm:py-4 bg-[#1e1e1e] border border-[#333] rounded-full text-gray-100 placeholder-gray-500 focus:outline-none focus:border-[#555] focus:ring-1 focus:ring-[#555] transition-colors text-base"
+              className="w-full px-4 py-3 sm:py-4 pr-12 bg-[#1e1e1e] border border-[#333] rounded-2xl text-gray-100 placeholder-gray-500 focus:outline-none focus:border-[#555] transition-colors text-base"
             />
-            <div className="absolute right-2 sm:right-4 flex items-center gap-1 sm:gap-2">
+            <div className="absolute right-3">
               {isLoading ? (
-                <div className="p-2">
-                  <svg
-                    className="animate-spin text-gray-400"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
-                    <path d="M12 2a10 10 0 0 1 10 10" />
-                  </svg>
-                </div>
+                <svg
+                  className="animate-spin text-gray-400 w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                  <path d="M12 2a10 10 0 0 1 10 10" />
+                </svg>
               ) : (
                 <button
                   type="submit"
                   disabled={!input.trim()}
-                  className="p-2 sm:p-2 text-gray-400 hover:text-gray-200 active:scale-95 disabled:text-gray-600 disabled:cursor-not-allowed transition-all touch-manipulation"
+                  className="p-1 text-gray-400 hover:text-gray-200 disabled:text-gray-600 disabled:cursor-not-allowed transition-all"
                 >
                   <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
+                    className="w-5 h-5"
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                    viewBox="0 0 24 24"
                   >
-                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                    />
                   </svg>
                 </button>
               )}
             </div>
           </div>
         </form>
-        <p className="text-center text-[10px] sm:text-xs text-gray-600 mt-2 sm:mt-3 px-2">
-          O Driva Query pode cometer erros. Por isso, é bom checar as respostas.
+        <p className="text-center text-[10px] sm:text-xs text-gray-600 mt-3 px-2">
+          O Mind pode cometer erros. Por isso, é bom checar as respostas.
         </p>
       </div>
     </div>

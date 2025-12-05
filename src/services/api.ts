@@ -1,6 +1,14 @@
+import axios from "axios";
+
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "https://services.driva.io";
-const USER_FROM = import.meta.env.VITE_USER_FROM || "5519999406763";
+const AUTH_URL = "https://services.driva.io";
+
+// Axios instance for auth requests with cookies
+const authApi = axios.create({
+  baseURL: AUTH_URL,
+  withCredentials: true, // Send cookies with requests
+});
 
 export interface ChatMessage {
   role: "user" | "assistant";
@@ -30,7 +38,8 @@ export const sendMessageStream = async (
   message: string,
   onChunk: (chunk: string) => void,
   history: ChatMessage[] = [],
-  onStatus?: (status: ThinkingStatus) => void
+  onStatus?: (status: ThinkingStatus) => void,
+  userId?: string
 ): Promise<void> => {
   try {
     const response = await fetch(
@@ -42,7 +51,7 @@ export const sendMessageStream = async (
         },
         body: JSON.stringify({
           content: message,
-          from: USER_FROM,
+          from: userId || "anonymous",
           history,
           tools: ["clickhouse"],
         }),
@@ -66,7 +75,8 @@ export const sendMessageStream = async (
       const { done, value } = await reader.read();
       if (done) break;
 
-      buffer += decoder.decode(value, { stream: true });
+      const chunk = decoder.decode(value, { stream: true });
+      buffer += chunk;
       const lines = buffer.split("\n");
 
       // Keep the last incomplete line in buffer
@@ -91,6 +101,7 @@ export const sendMessageStream = async (
               continue;
             }
 
+            // Try to parse as JSON first
             if (jsonStr.startsWith("{")) {
               const parsed: ChatResponse = JSON.parse(jsonStr);
 
@@ -103,13 +114,21 @@ export const sendMessageStream = async (
               if (parsed.content) {
                 onChunk(parsed.content);
               }
+            } else {
+              // If not JSON, treat the whole line as content (plain text stream)
+              onChunk(trimmedLine);
             }
           } catch (e) {
-            // Ignore parse errors for incomplete chunks
-            console.debug("Parse error for line:", trimmedLine, e);
+            // If JSON parse fails, treat as plain text
+            onChunk(trimmedLine);
           }
         }
       }
+    }
+
+    // Process any remaining buffer
+    if (buffer.trim()) {
+      onChunk(buffer.trim());
     }
   } catch (error) {
     console.error("Error sending message:", error);
@@ -120,7 +139,8 @@ export const sendMessageStream = async (
 // Fallback for non-streaming endpoints
 export const sendMessage = async (
   message: string,
-  history: ChatMessage[] = []
+  history: ChatMessage[] = [],
+  userId?: string
 ): Promise<string> => {
   try {
     const response = await fetch(
@@ -132,7 +152,7 @@ export const sendMessage = async (
         },
         body: JSON.stringify({
           content: message,
-          from: USER_FROM,
+          from: userId || "anonymous",
           history,
           tools: ["clickhouse"],
         }),
@@ -176,4 +196,327 @@ export const sendMessage = async (
     console.error("Error sending message:", error);
     throw error;
   }
+};
+
+// ==================== Authentication APIs ====================
+
+export interface SignInResponse {
+  status: string;
+  id: string;
+  email: string;
+  firstname: string;
+  lastname: string;
+  phone: string;
+  workspaceId: string;
+  jwt: string;
+  photo?: string;
+  permissions: string[];
+}
+
+export interface AuthResponse {
+  id: string;
+  name: string;
+  email: string;
+  workspaceId: string;
+  jwt: string;
+}
+
+export interface GuestUserResponse {
+  id: string;
+  messagingId: string;
+  name: string;
+  email: string | null;
+  companyId: string;
+  drivaUserId: string | null;
+}
+
+/**
+ * Authenticate user with Driva Management API (signin)
+ * Uses axios with credentials to set session cookie
+ */
+export const authenticateDriva = async (
+  email: string,
+  password: string
+): Promise<AuthResponse> => {
+  try {
+    const response = await authApi.post<SignInResponse>(
+      "/management/v1/signin",
+      { email, password }
+    );
+
+    const data = response.data;
+
+    // Map signin response to AuthResponse format
+    return {
+      id: data.id,
+      name: `${data.firstname} ${data.lastname}`.trim(),
+      email: data.email,
+      workspaceId: data.workspaceId,
+      jwt: data.jwt,
+    };
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Credenciais inválidas");
+    }
+    throw error;
+  }
+};
+
+/**
+ * Verify if user is still logged in using session cookie
+ */
+export const verifyAuth = async (): Promise<AuthResponse | null> => {
+  try {
+    console.log("Calling current-user API with cookies...");
+    const response = await authApi.get<SignInResponse>(
+      "/management/v1/current-user"
+    );
+
+    console.log("current-user response status:", response.status);
+    const data = response.data;
+    console.log("current-user data:", data.firstname, data.lastname);
+
+    return {
+      id: data.id,
+      name: `${data.firstname} ${data.lastname}`.trim(),
+      email: data.email,
+      workspaceId: data.workspaceId,
+      jwt: data.jwt || "",
+    };
+  } catch (error) {
+    console.error("verifyAuth error:", error);
+    return null;
+  }
+};
+
+/**
+ * Create a guest user for anonymous access
+ */
+export const createGuestUser = async (
+  name?: string
+): Promise<GuestUserResponse> => {
+  const response = await fetch(`${API_BASE_URL}/sales-copilot/v3/users/guest`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Erro ao criar usuário visitante");
+  }
+
+  return response.json();
+};
+
+/**
+ * Link a guest user to a Driva account
+ */
+export const linkUserAccount = async (
+  userId: string,
+  email: string,
+  drivaUserId: string,
+  name?: string
+): Promise<GuestUserResponse> => {
+  const response = await fetch(
+    `${API_BASE_URL}/sales-copilot/v3/users/${userId}/link`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, drivaUserId, name }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Erro ao vincular conta");
+  }
+
+  return response.json();
+};
+
+/**
+ * Sync/create user from Driva authentication
+ * This ensures the user exists in sales-copilot with drivaUserId as messagingId
+ */
+export const syncDrivaUser = async (
+  drivaUserId: string,
+  email: string,
+  name: string
+): Promise<GuestUserResponse> => {
+  const response = await fetch(`${API_BASE_URL}/sales-copilot/v3/users/sync`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ drivaUserId, email, name }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Erro ao sincronizar usuário");
+  }
+
+  return response.json();
+};
+
+// ==================== Chat History API ====================
+
+export interface ChatSession {
+  id: string;
+  userId: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatMessageData {
+  id: string;
+  chatId: string;
+  role: "user" | "assistant";
+  content: string;
+  createdAt: string;
+}
+
+export interface ChatWithMessages extends ChatSession {
+  messages: ChatMessageData[];
+}
+
+/**
+ * Create a new chat session
+ */
+export const createChat = async (
+  userId: string,
+  title: string
+): Promise<ChatSession> => {
+  const response = await fetch(`${API_BASE_URL}/sales-copilot/v3/chats`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userId, title }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Erro ao criar chat");
+  }
+
+  return response.json();
+};
+
+/**
+ * Get all chats for a user
+ */
+export const getChats = async (userId: string): Promise<ChatSession[]> => {
+  const response = await fetch(
+    `${API_BASE_URL}/sales-copilot/v3/chats?userId=${encodeURIComponent(
+      userId
+    )}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Erro ao buscar chats");
+  }
+
+  return response.json();
+};
+
+/**
+ * Get a chat with its messages
+ */
+export const getChatWithMessages = async (
+  chatId: string
+): Promise<ChatWithMessages> => {
+  const response = await fetch(
+    `${API_BASE_URL}/sales-copilot/v3/chats/${chatId}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Erro ao buscar chat");
+  }
+
+  return response.json();
+};
+
+/**
+ * Update a chat title
+ */
+export const updateChat = async (
+  chatId: string,
+  title: string
+): Promise<ChatSession> => {
+  const response = await fetch(
+    `${API_BASE_URL}/sales-copilot/v3/chats/${chatId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ title }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Erro ao atualizar chat");
+  }
+
+  return response.json();
+};
+
+/**
+ * Delete a chat
+ */
+export const deleteChat = async (chatId: string): Promise<void> => {
+  const response = await fetch(
+    `${API_BASE_URL}/sales-copilot/v3/chats/${chatId}`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Erro ao deletar chat");
+  }
+};
+
+/**
+ * Add a message to a chat
+ */
+export const addMessageToChat = async (
+  chatId: string,
+  role: "user" | "assistant",
+  content: string
+): Promise<ChatMessageData> => {
+  const response = await fetch(
+    `${API_BASE_URL}/sales-copilot/v3/chats/${chatId}/messages`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ role, content }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Erro ao adicionar mensagem");
+  }
+
+  return response.json();
 };
