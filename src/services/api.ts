@@ -200,6 +200,11 @@ export const sendMessage = async (
 
 // ==================== Authentication APIs ====================
 
+export interface DrivaWorkspace {
+  id: string;
+  name: string;
+}
+
 export interface SignInResponse {
   status: string;
   id: string;
@@ -211,6 +216,7 @@ export interface SignInResponse {
   jwt: string;
   photo?: string;
   permissions: string[];
+  workspaces?: DrivaWorkspace[];
 }
 
 export interface AuthResponse {
@@ -218,6 +224,7 @@ export interface AuthResponse {
   name: string;
   email: string;
   workspaceId: string;
+  workspaceName?: string;
   jwt: string;
 }
 
@@ -246,12 +253,28 @@ export const authenticateDriva = async (
 
     const data = response.data;
 
+    let workspaceId = data.workspaceId;
+    let workspaceName = "Driva Workspace";
+
+    if (data.workspaces && data.workspaces.length > 0) {
+      // Try to find the workspace matching the top-level ID to get its name
+      const foundWorkspace = data.workspaces.find((w) => w.id === data.workspaceId);
+      if (foundWorkspace) {
+        workspaceName = foundWorkspace.name;
+      } else {
+        // If not found (or top-level ID is missing/invalid), use the first workspace from the array
+        workspaceId = data.workspaces[0].id;
+        workspaceName = data.workspaces[0].name;
+      }
+    }
+
     // Map signin response to AuthResponse format
     return {
       id: data.id,
       name: `${data.firstname} ${data.lastname}`.trim(),
       email: data.email,
-      workspaceId: data.workspaceId,
+      workspaceId: workspaceId,
+      workspaceName: workspaceName,
       jwt: data.jwt,
     };
   } catch (error) {
@@ -276,11 +299,25 @@ export const verifyAuth = async (): Promise<AuthResponse | null> => {
     const data = response.data;
     console.log("current-user data:", data.firstname, data.lastname);
 
+    let workspaceId = data.workspaceId;
+    let workspaceName = "Driva Workspace";
+
+    if (data.workspaces && data.workspaces.length > 0) {
+      const foundWorkspace = data.workspaces.find((w) => w.id === data.workspaceId);
+      if (foundWorkspace) {
+        workspaceName = foundWorkspace.name;
+      } else {
+        workspaceId = data.workspaces[0].id;
+        workspaceName = data.workspaces[0].name;
+      }
+    }
+
     return {
       id: data.id,
       name: `${data.firstname} ${data.lastname}`.trim(),
       email: data.email,
-      workspaceId: data.workspaceId,
+      workspaceId: workspaceId,
+      workspaceName: workspaceName,
       jwt: data.jwt || "",
     };
   } catch (error) {
@@ -344,14 +381,16 @@ export const linkUserAccount = async (
 export const syncDrivaUser = async (
   drivaUserId: string,
   email: string,
-  name: string
+  name: string,
+  workspaceId: string,
+  companyName?: string
 ): Promise<GuestUserResponse> => {
   const response = await fetch(`${API_BASE_URL}/sales-copilot/v3/users/sync`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ drivaUserId, email, name }),
+    body: JSON.stringify({ drivaUserId, email, name, workspaceId, companyName }),
   });
 
   if (!response.ok) {

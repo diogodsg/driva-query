@@ -59,7 +59,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const syncedUser = await syncDrivaUser(
               verifiedUser.id,
               verifiedUser.email,
-              verifiedUser.name
+              verifiedUser.name,
+              verifiedUser.workspaceId,
+              verifiedUser.workspaceName
             );
 
             // Session is valid, update user with fresh data from API
@@ -101,7 +103,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const syncedUser = await syncDrivaUser(
         authResponse.id,
         authResponse.email,
-        authResponse.name
+        authResponse.name,
+        authResponse.workspaceId,
+        authResponse.workspaceName
       );
 
       // 3. Update user state
