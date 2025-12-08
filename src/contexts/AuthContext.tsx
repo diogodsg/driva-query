@@ -8,7 +8,6 @@ import {
 import {
   authenticateDriva,
   createGuestUser,
-  linkUserAccount,
   syncDrivaUser,
   verifyAuth,
 } from "../services/api";

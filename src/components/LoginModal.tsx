@@ -43,7 +43,7 @@ export function LoginModal() {
         {!showEmailForm ? (
           <>
             {/* Google Login Button */}
-            <div className="space-y-3">
+            {/* <div className="space-y-3">
               <button
                 type="button"
                 className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-[#202020] hover:bg-[#2a2a2a] border border-gray-700 rounded-full text-white transition-colors"
@@ -68,14 +68,14 @@ export function LoginModal() {
                 </svg>
                 Continuar com Google
               </button>
-            </div>
+            </div> */}
 
             {/* Divider */}
-            <div className="flex items-center my-6">
+            {/* <div className="flex items-center my-6">
               <div className="flex-1 border-t border-gray-700"></div>
               <span className="px-4 text-gray-500 text-sm">OU</span>
               <div className="flex-1 border-t border-gray-700"></div>
-            </div>
+            </div> */}
 
             {/* Email input */}
             <div className="space-y-3">
