@@ -1,18 +1,18 @@
 # build environment
 FROM node:20-alpine AS build
-RUN mkdir /app
 WORKDIR /app
-COPY package.json /app
-RUN npm cache clean --force
-RUN npm install --force
-COPY . /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
 RUN npm run build
+RUN npm run export   # <- gera o diretório /out
 
 # production environment
 FROM nginx:stable-alpine
-COPY --from=build /app/dist /usr/share/nginx/html
-COPY --from=build /app/public /home/www/static
 
-RUN rm -rf /etc/nginx/conf.d/default.conf
-COPY ./nginx.conf /etc/nginx/conf.d
+COPY --from=build /app/out /usr/share/nginx/html
+
 EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

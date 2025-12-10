@@ -258,7 +258,9 @@ export const authenticateDriva = async (
 
     if (data.workspaces && data.workspaces.length > 0) {
       // Try to find the workspace matching the top-level ID to get its name
-      const foundWorkspace = data.workspaces.find((w) => w.id === data.workspaceId);
+      const foundWorkspace = data.workspaces.find(
+        (w) => w.id === data.workspaceId
+      );
       if (foundWorkspace) {
         workspaceName = foundWorkspace.name;
       } else {
@@ -303,7 +305,9 @@ export const verifyAuth = async (): Promise<AuthResponse | null> => {
     let workspaceName = "Driva Workspace";
 
     if (data.workspaces && data.workspaces.length > 0) {
-      const foundWorkspace = data.workspaces.find((w) => w.id === data.workspaceId);
+      const foundWorkspace = data.workspaces.find(
+        (w) => w.id === data.workspaceId
+      );
       if (foundWorkspace) {
         workspaceName = foundWorkspace.name;
       } else {
@@ -390,7 +394,13 @@ export const syncDrivaUser = async (
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ drivaUserId, email, name, workspaceId, companyName }),
+    body: JSON.stringify({
+      drivaUserId,
+      email,
+      name,
+      workspaceId,
+      companyName,
+    }),
   });
 
   if (!response.ok) {
